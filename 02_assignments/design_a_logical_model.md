@@ -15,10 +15,10 @@ _Hint, search type 1 vs type 2 slowly changing dimensions._
 
 Bonus: Are there privacy implications to this, why or why not?
 ```
- - 1. Type 1 Slowly Changing Dimension (SCD)
-   a) ##Overwrite##: this architecture simply updates (overwrites) the new address whenever there's a change in the customer's address. Only the latest address information is retained, and there is no historical tracking of changes.
+1. Type 1 Slowly Changing Dimension (SCD)
+   a) Overwrite: this architecture simply updates (overwrites) the new address whenever there's a change in the customer's address. Only the latest address information is retained, and there is no historical tracking of changes.
 
-   b) ##Schema##: the schema of the 'CUSTOMER_ADDRESS' table would typically include columns such as 
+   b) Schema: the schema of the 'CUSTOMER_ADDRESS' table would typically include columns such as 
    'customer_id', 
    'address', 
    'city', 
@@ -26,20 +26,20 @@ Bonus: Are there privacy implications to this, why or why not?
    'country', 
    'zip_code'.
 
-   c) ##SQL statement##: 
+   c) SQL statement: 
    "UPDATE customer_address SET c1=v1, ... WHERE customer_id ='...'".
 
- - 2. Type 2 Slowly Changing Dimension (SCD)
-   a) ##Insert##: this architecture simply keeps all historical changes to the customer addresses. Each time there's a change in the table, a new record is inserted into the database, preserving the history of changes over time.
-   b) ##Schema##: the schema of the 'CUSTOMER_ADDRESS' table would typically include columns such as 
+2. Type 2 Slowly Changing Dimension (SCD)
+   a) Insert: this architecture simply keeps all historical changes to the customer addresses. Each time there's a change in the table, a new record is inserted into the database, preserving the history of changes over time.
+   b) Schema: the schema of the 'CUSTOMER_ADDRESS' table would typically include columns such as 
    'customer_id', 
    'address', 
    'city', 
    'state', 
    'country', 
    'zip_code', 
-   ##'address_id', (new Primary Key)##
-   ##'status' and 'time_stamp'. (additional columns)##
+   'address_id', (new Primary Key)
+   'status' and 'time_stamp'. (additional columns)
    
    Given that the 'customer_id' duplicates with every change in the address, a new primary key (PK) is needed. 'address_id' will serve as a reference  to the 'customer' table.
 
