@@ -16,9 +16,10 @@ _Hint, search type 1 vs type 2 slowly changing dimensions._
 Bonus: Are there privacy implications to this, why or why not?
 ```
 1. Type 1 Slowly Changing Dimension (SCD)
-   a) Overwrite: this architecture simply updates (overwrites) the new address whenever there's a change in the customer's address. Only the latest address information is retained, and there is no historical tracking of changes.
 
-   b) Schema: the schema of the 'CUSTOMER_ADDRESS' table would typically include columns such as 
+   1.1 Overwrite: this architecture simply updates (overwrites) the new address whenever there's a change in the customer's address. Only the latest address information is retained, and there is no historical tracking of changes.
+
+   1.2 Schema: the schema of the 'CUSTOMER_ADDRESS' table would typically include columns such as 
    'customer_id', 
    'address', 
    'city', 
@@ -26,12 +27,14 @@ Bonus: Are there privacy implications to this, why or why not?
    'country', 
    'zip_code'.
 
-   c) SQL statement: 
+   1.3 SQL statement: 
    "UPDATE customer_address SET c1=v1, ... WHERE customer_id ='...'".
 
 2. Type 2 Slowly Changing Dimension (SCD)
-   a) Insert: this architecture simply keeps all historical changes to the customer addresses. Each time there's a change in the table, a new record is inserted into the database, preserving the history of changes over time.
-   b) Schema: the schema of the 'CUSTOMER_ADDRESS' table would typically include columns such as 
+
+   2.1 Insert: this architecture simply keeps all historical changes to the customer addresses. Each time there's a change in the table, a new record is inserted into the database, preserving the history of changes over time.
+
+   2.2 Schema: the schema of the 'CUSTOMER_ADDRESS' table would typically include columns such as 
    'customer_id', 
    'address', 
    'city', 
@@ -47,20 +50,21 @@ Bonus: Are there privacy implications to this, why or why not?
    
    The 'time_stamp' column records the date and time precisely when an outdated record becomes invalid. This timestamp functionality serves to efficiently organize and sort all historical addresses in chronological order.
 
-   c) Two SQL statements: (One to insert new address information, and another to update outdated entries)
+   2.3 Two SQL statements: (One to insert new address information, and another to update outdated entries)
    ' INSERT INTO customer_address (col1, col2, ...) VALUES(value1, value2, ...)'. 
    'UPDATE customer_address SET status = 1, time_stamp=julianday('now')  WHERE customer_id='...'.
 
-   d) 'SELECT' statement: the SQL statement for 'SELECT' will be amended to include a 'WHERE' condition: 'WHERE status is not null'. This ensures that only the latest valid information is retrieved. This optimization eliminates the need to compare timestamps to identify the most recent address, thus enhancing database performance, particularly when 'status' is indexed. 
+   2.4 'SELECT' statement: the SQL statement for 'SELECT' will be amended to include a 'WHERE' condition: 'WHERE status is not null'. This ensures that only the latest valid information is retrieved. This optimization eliminates the need to compare timestamps to identify the most recent address, thus enhancing database performance, particularly when 'status' is indexed. 
 
-   e) 'DELETE' statement: the integer value assigned to 'status' can accomodate various scenarios, allowing  the database to preserve data instead of deletion. Different values may signify different reasons for invalidity, aiding in data management and retrieval.
+   2.5 'DELETE' statement: the integer value assigned to 'status' can accomodate various scenarios, allowing  the database to preserve data instead of deletion. Different values may signify different reasons for invalidity, aiding in data management and retrieval.
    
- - 3. Privacy implication
-    a) Data Breach Risk: Storing customer addresses increases the potential impact of a data breach. If unauthorized parties gain access to the database, they could exploit this sensitive information for identity theft.
+3. Privacy implication
 
-    b) Compliance Issues: Depending on the jurisdiction and the nature of the stored data, there might be legal requirements regarding the storage and protection of customer addresses. Failure to comply with these regulations could result in sustantial fines or legal repercussion.
+    3.1 Data Breach Risk: Storing customer addresses increases the potential impact of a data breach. If unauthorized parties gain access to the database, they could exploit this sensitive information for identity theft.
 
-    c) Customer Trust: Customers may be concerned about their privacy and the security of their personal information. If they perceive that their addresses are not being adequately protected, it could undermine their trust in the business and lead to customer dissatisfaction or even loss of business.
+    3.2 Compliance Issues: Depending on the jurisdiction and the nature of the stored data, there might be legal requirements regarding the storage and protection of customer addresses. Failure to comply with these regulations could result in sustantial fines or legal repercussion.
+
+    3.3 Customer Trust: Customers may be concerned about their privacy and the security of their personal information. If they perceive that their addresses are not being adequately protected, it could undermine their trust in the business and lead to customer dissatisfaction or even loss of business.
 
 
 ```
