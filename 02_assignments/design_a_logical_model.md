@@ -74,7 +74,21 @@ Review the AdventureWorks Schema [here](https://i.stack.imgur.com/LMu4W.gif)
 
 Highlight at least two differences between it and your ERD. Would you change anything in yours?
 ```
-Your answer...
+1. Compared to AdventureWorks schema, there are indeed a couple of differences:
+
+    1.1 Focus on Company Department Functionality and Security:
+      My ERD places emphasis on company department functionality by creating schemas according to department work scope, including areas such as financing and accounting. This approach ensures that 'the least privileges' are assigned to individuals based on their daily job responsibilities, adhering to best practices for database security and access control.
+
+    1.2 Error Log and Metadata Tables:
+      AdventureWorks schema includes tables dedicated to error logging and metadata recording, which are present in the AdventureWorks schema. These tables are essential for tracking errors, system events, and changes made to the database, enhancing data governance and troubleshooting capabilities.
+
+    1.3 Production Schema Details:
+      AdventureWorks schema includes specific tables related to production, such as work order, product price history, and product subcategory. These details provide a deeper level of specificity in modeling the production processes, which may be beneficial for those systems focusing on manufacturing industry. 
+
+2. Regarding potential changes to my ERD:
+   -- Consider adding database user management and error logging
+      Including tables dedicated to error logging and user / user group management can enhance data governance and facilitate troubleshooting. This addition would align my ERD more closely with standard database practices and improve overall system performance.
+
 ```
 
 # Criteria
