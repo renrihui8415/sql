@@ -42,13 +42,13 @@ Bonus: Are there privacy implications to this, why or why not?
    'country', 
    'zip_code', 
    'address_id', (new Primary Key)
-   'status' and 'time_stamp'. (additional columns)
+   'status'. (additional column)
    
-   Given that the 'customer_id' duplicates with every change in the address, a new primary key (PK) is needed. 'address_id' will serve as a reference  to the 'customer' table.
+   Given that the 'customer_id' duplicates with every change in the address; a new column ('address_id') is created to serve as primary key (PK). 
 
    When a customer's address becomes outdated, the 'status' column will receive an integer value to denote its invalidity. Subsequently, the new address will be inserted into the table as a new row with its 'status' column set to 'null', signifying its current validity. Only the most recent address entry will possess a 'null' status. It is advisable to index the 'status' column to enhance query performance. 
    
-   The 'time_stamp' column records the date and time precisely when an outdated record becomes invalid. This timestamp functionality serves to efficiently organize and sort all historical addresses in chronological order.
+   The 'address_id' column is primarily generated based on a timestamp to ensure a unique identifier for each customer. In the future, as the business expands and multiple records are created simultaneously (concurrent writes), additional strings or digits may be appended to the timestamp to maintain uniqueness. Consequently, the 'address_id' column not only serves as the primary key (PK) for the table, but also precisely records the date and time when an outdated record becomes invalid. This timestamp functionality efficiently organizes and sorts all historical addresses in chronological order.
 
    2.3 Two SQL statements: (One to insert new address information, and another to update outdated entries)
    ' INSERT INTO customer_address (col1, col2, ...) VALUES(value1, value2, ...)'. 
