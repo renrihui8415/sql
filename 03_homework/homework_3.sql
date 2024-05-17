@@ -28,7 +28,7 @@ ORDER BY c.customer_last_name, c.customer_first_name;
 Although the Farmer's Market database has been cleaned, 
 it's essential to account for potential issues with data types. 
 While SQLite doesn't enforce data types, ensuring that values in the 'quantity' and 'cost_to_customer_per_qty' columns are valid 
-is crucial for accurate calculations. Any invalid values, such as strings, 
+is crucial for accurate calculations. Any invalid values, such as strings, or NULLs,
 should be excluded from calculations to maintain data integrity.
 */
 SELECT
