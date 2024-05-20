@@ -28,7 +28,7 @@ ORDER BY c.customer_last_name, c.customer_first_name;
 Although the Farmer's Market database has been cleaned, 
 it's essential to account for potential issues with data types. 
 While SQLite doesn't enforce data types, ensuring that values in the 'quantity' and 'cost_to_customer_per_qty' columns are valid 
-is crucial for accurate calculations. Any invalid values, such as strings, or NULLs,
+is crucial for accurate calculations. Any invalid values, such as strings, or nulls,
 should be excluded from calculations to maintain data integrity.
 */
 SELECT
@@ -93,7 +93,7 @@ SELECT
 	
 FROM customer_purchases
 WHERE month ='04' AND year = '2019'
-GROUP BY customer_id;
+GROUP BY customer_id, month, year;
 
 /* Thought on data cleansing
 If we take data validation into consideration, the QUERY would be like:
@@ -106,4 +106,4 @@ SELECT
 	
 FROM customer_purchases
 WHERE month ='04' AND year = '2019'
-GROUP BY customer_id;
+GROUP BY customer_id, month, year;
