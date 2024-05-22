@@ -117,5 +117,80 @@ FROM (
 			customer_purchases
 ) AS x;
 
+-- String manipulations
+/* 1. Some product names in the product table have descriptions like "Jar" or "Organic". 
+These are separated from the product name with a hyphen. 
+Create a column using SUBSTR (and a couple of other commands) that captures these, but is otherwise NULL. 
+Remove any trailing or leading whitespaces. Don't just use a case statement for each product! 
 
+| product_name               | description |
+|----------------------------|-------------|
+| Habanero Peppers - Organic | Organic     |
+
+Hint: you might need to use INSTR(product_name,'-') to find the hyphens. INSTR will help split the column. */
+SELECT 
+	product_name,
+	CASE
+		WHEN instr(product_name,'-')=0
+		THEN NULL
+	ELSE
+		trim(substr(product_name, instr(product_name,'-')+1) )
+	END as captured_description
+FROM
+	product;
+
+
+/* 2. Filter the query to show any product_size value that contain a number with REGEXP. */
+SELECT 
+	product_name,
+	product_size,
+	CASE
+		WHEN instr(product_name,'-')=0
+		THEN NULL
+	ELSE
+		trim(substr(product_name, instr(product_name,'-')+1) )
+	END as captured_description
+FROM
+	product
+WHERE 
+	product_size REGEXP '[0-9]+' ;
+
+
+-- UNION
+/* 1. Using a UNION, write a query that displays the market dates with the highest and lowest total sales.
+
+HINT: There are a possibly a few ways to do this query, but if you're struggling, try the following: 
+1) Create a CTE/Temp Table to find sales values grouped dates; 
+2) Create another CTE/Temp table with a rank windowed function on the previous query to create 
+"best day" and "worst day"; 
+3) Query the second temp table twice, once for the best day, once for the worst day, 
+with a UNION binding them. */
+DROP TABLE IF EXISTS daily_sales;
+-- CREATE the temp daily_sales table and sort the sales in order
+-- Convert any NULL values or non-numeric values to '0' when SUM, to ensure accuracy
+CREATE TEMP TABLE daily_sales AS
+SELECT
+	market_date,
+	SUM(COALESCE(CAST(quantity AS REAL), '0.00')*COALESCE(CAST(cost_to_customer_per_qty AS REAL), '0.00')) AS total_cost
+FROM customer_purchases 
+GROUP BY market_date
+ORDER BY total_cost;
+
+-- SELECT min and max total_cost from the temp table and UNION them
+SELECT 
+	market_date,
+	min(total_cost) as total_sales,
+	'min' as [max/min]
+FROM 
+	daily_sales
+
+UNION	
+
+SELECT 
+	market_date,
+	max(total_cost) as total_sales,
+	'max' as [max/min]
+FROM 
+	daily_sales;
+	
 	
