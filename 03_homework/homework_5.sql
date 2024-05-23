@@ -1,33 +1,3 @@
--- String manipulations
-/* 1. Some product names in the product table have descriptions like "Jar" or "Organic". 
-These are separated from the product name with a hyphen. 
-Create a column using SUBSTR (and a couple of other commands) that captures these, but is otherwise NULL. 
-Remove any trailing or leading whitespaces. Don't just use a case statement for each product! 
-
-| product_name               | description |
-|----------------------------|-------------|
-| Habanero Peppers - Organic | Organic     |
-
-Hint: you might need to use INSTR(product_name,'-') to find the hyphens. INSTR will help split the column. */
-
-
-
-/* 2. Filter the query to show any product_size value that contain a number with REGEXP. */
-
-
-
--- UNION
-/* 1. Using a UNION, write a query that displays the market dates with the highest and lowest total sales.
-
-HINT: There are a possibly a few ways to do this query, but if you're struggling, try the following: 
-1) Create a CTE/Temp Table to find sales values grouped dates; 
-2) Create another CTE/Temp table with a rank windowed function on the previous query to create 
-"best day" and "worst day"; 
-3) Query the second temp table twice, once for the best day, once for the worst day, 
-with a UNION binding them. */
-
-
-
 -- Cross Join
 /*1. Suppose every vendor in the `vendor_inventory` table had 5 of each of their products to sell to **every** 
 customer on record. How much money would each vendor make per product? 
@@ -39,6 +9,31 @@ Think a bit about the row counts: how many distinct vendors, product names are t
 How many customers are there (y). 
 Before your final group by you should have the product of those two queries (x*y).  */
 
+SELECT 
+	vendor_name,
+	product_name,
+	original_price* 5 * customer_number as earning_per_product
+FROM (
+
+				SELECT DISTINCT
+					vendor_id,
+					product_id,
+					original_price,
+					c.customer_number
+				FROM
+					vendor_inventory as vi
+				CROSS JOIN (
+					SELECT 
+						count(DISTINCT (customer_id)) AS customer_number
+					FROM
+						customer 
+				)as c 
+				
+) as m
+INNER JOIN product as p
+ON m.product_id=p.product_id
+INNER JOIN vendor as v
+ON v.vendor_id=m.vendor_id;
 
 
 -- INSERT
@@ -47,19 +42,45 @@ This table will contain only products where the `product_qty_type = 'unit'`.
 It should use all of the columns from the product table, as well as a new column for the `CURRENT_TIMESTAMP`.  
 Name the timestamp column `snapshot_timestamp`. */
 
+DROP TABLE IF EXISTS product_units;
+
+CREATE TABLE product_units AS
+SELECT 
+	*,
+	CURRENT_TIMESTAMP as snapshot_timestamp
+FROM	
+	product
+WHERE
+	product_qty_type='unit';
+	
+-- SELECT * from product_units ORDER BY product_id;
 
 
 /*2. Using `INSERT`, add a new row to the product_units table (with an updated timestamp). 
 This can be any product you desire (e.g. add another record for Apple Pie). */
 
+INSERT INTO product_units (product_id, product_name,product_size,product_category_id, product_qty_type, snapshot_timestamp)
+VALUES(
+	(SELECT max(product_id) +1 FROM product_units),  -- take ''max(product_id) +1'' to be the product_id for the new entry
+	'DSI Data Pie',
+	'large',
+	(SELECT product_category_id FROM product_category WHERE lower(product_category_name) LIKE '%food%' LIMIT 1), -- get the 'food' category_id for the new entry: 'DSI Data Pie'
+	'unit',
+	CURRENT_TIMESTAMP
+);
 
+-- SELECT * from product_units ORDER BY product_id;
 
 -- DELETE
 /* 1. Delete the older record for the whatever product you added. 
 
 HINT: If you don't specify a WHERE clause, you are going to have a bad time.*/
 
-
+DELETE FROM product_units
+WHERE
+	product_name='DSI Data Pie';
+	
+-- SELECT * from product_units ORDER BY product_id;
 
 -- UPDATE
 /* 1.We want to add the current_quantity to the product_units table. 
@@ -78,4 +99,71 @@ Finally, make sure you have a WHERE statement to update the right row,
 	you'll need to use product_units.product_id to refer to the correct row within the product_units table. 
 When you have all of these components, you can run the update statement. */
 
+-- 0. Check the column EXISTS or not
+-- as SQLite does not support procedural language to check a column EXISTS or not,
+-- Either manually check the column: PRAGMA table_info(product_units)
+-- or, use python to automate this process
 
+-- METHOD A
+-- 1) ADD current_quantity column to the 'product_units' table
+ALTER TABLE 	product_units
+ADD current_quantity INT;
+-- 2) Get the 'last_quantity' according to the lastest market_date, from the 'vendor_inventory' table 
+-- 3) Update the 'product_units' table with the result returned from Step 2
+
+UPDATE product_units AS pu
+SET current_quantity = (
+
+    SELECT lq.quantity
+    FROM (
+				SELECT 
+					product_id,
+					quantity 
+				FROM
+					vendor_inventory AS vi_1
+				WHERE 
+					market_date = (
+						SELECT 
+							MAX(market_date) 
+						FROM 
+							vendor_inventory AS vi_2
+						WHERE 
+							vi_1.product_id = vi_2.product_id
+					) 
+
+)AS lq
+WHERE pu.product_id = lq.product_id
+);
+
+-- 4) Update the 'product_units' table and ensure that 'current_quantity' is set to 0 where it is NULL
+UPDATE 	product_units
+SET current_quantity=0
+WHERE current_quantity IS NULL;
+-- 5) Check the result
+-- SELECT * from product_units ORDER BY product_id;
+
+
+-- METHOD B
+-- 1) ADD current_quantity column to the 'product_units' table
+ALTER TABLE 	product_units
+ADD current_quantity INT;
+-- 2) Update the 'product_units' table by searching the latest quantity in the 'vendor_inventory' table, 
+-- if the product is not found in the 'vendor_inventory' table, update the column with a value of '0'
+
+UPDATE product_units as pu
+SET current_quantity = coalesce(
+														(SELECT vi.quantity
+														FROM vendor_inventory as vi
+														WHERE vi.product_id=pu.product_id
+														ORDER BY vi.market_date DESC
+														LIMIT 1),
+														0)
+-- WHERE product_id IN (SELECT product_id from vendor_inventory);		
+-- Either a) use COALESCE to replace null with '0' as the above QUERY; 
+-- or, b) use WHERE condition to only update rows in the 'product_units' table 
+-- 		that have a corresponding 'product_id' in the 'vendor_inventory' table.  Then,
+--      use a UPDATE statement to update those null values to be '0'.
+
+					
+-- 3) Check the result
+-- SELECT * from product_units ORDER BY product_id;
