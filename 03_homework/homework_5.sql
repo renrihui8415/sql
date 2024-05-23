@@ -16,19 +16,19 @@ SELECT
 	original_price* 5 * customer_number as earning_per_product
 FROM (
 
-				SELECT DISTINCT
-					vendor_id,
-					product_id,
-					original_price,
-					c.customer_number
-				FROM
-					vendor_inventory as vi
-				CROSS JOIN (
-					SELECT 
-						count(DISTINCT (customer_id)) AS customer_number
-					FROM
-						customer 
-				)as c 
+	SELECT DISTINCT
+		vendor_id,
+		product_id,
+		original_price,
+		c.customer_number
+	FROM
+		vendor_inventory as vi
+	CROSS JOIN (
+		SELECT 
+			count(DISTINCT (customer_id)) AS customer_number
+		FROM
+			customer 
+	)as c 
 				
 ) as m
 INNER JOIN product as p
@@ -117,20 +117,20 @@ SET current_quantity = (
 
     SELECT lq.quantity
     FROM (
+		SELECT 
+			product_id,
+			quantity 
+		FROM
+			vendor_inventory AS vi_1
+		WHERE 
+			market_date = (
 				SELECT 
-					product_id,
-					quantity 
-				FROM
-					vendor_inventory AS vi_1
+					MAX(market_date) 
+				FROM 
+					vendor_inventory AS vi_2
 				WHERE 
-					market_date = (
-						SELECT 
-							MAX(market_date) 
-						FROM 
-							vendor_inventory AS vi_2
-						WHERE 
-							vi_1.product_id = vi_2.product_id
-					) 
+					vi_1.product_id = vi_2.product_id
+			) 
 
 )AS lq
 WHERE pu.product_id = lq.product_id
@@ -153,12 +153,12 @@ ADD current_quantity INT;
 
 UPDATE product_units as pu
 SET current_quantity = coalesce(
-														(SELECT vi.quantity
-														FROM vendor_inventory as vi
-														WHERE vi.product_id=pu.product_id
-														ORDER BY vi.market_date DESC
-														LIMIT 1),
-														0)
+				(SELECT vi.quantity
+				FROM vendor_inventory as vi
+				WHERE vi.product_id=pu.product_id
+				ORDER BY vi.market_date DESC
+				LIMIT 1),
+				0)
 -- WHERE product_id IN (SELECT product_id from vendor_inventory);		
 -- Either a) use COALESCE to replace null with '0' as the above QUERY; 
 -- or, b) use WHERE condition to only update rows in the 'product_units' table 
