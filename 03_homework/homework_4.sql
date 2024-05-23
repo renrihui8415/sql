@@ -138,7 +138,7 @@ SELECT
 		THEN NULL
 	ELSE
 		trim(substr(product_name, instr(product_name,'-')+1) )
-	END as captured_description
+	END as description
 FROM
 	product;
 
