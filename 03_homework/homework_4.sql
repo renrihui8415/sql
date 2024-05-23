@@ -78,15 +78,15 @@ SELECT
 	market_date as recent_visit
 FROM (
 
-		SELECT
-			customer_id,
-			market_date,
-			dense_rank() OVER (PARTITION BY customer_id ORDER BY market_date DESC) as visit_number
-		FROM(
-			SELECT 
-				DISTINCT customer_id, market_date 
-			FROM customer_purchases
-		) as distinct_visits
+	SELECT
+		customer_id,
+		market_date,
+		dense_rank() OVER (PARTITION BY customer_id ORDER BY market_date DESC) as visit_number
+	FROM(
+		SELECT 
+			DISTINCT customer_id, market_date 
+		FROM customer_purchases
+	) as distinct_visits
 	
 ) AS rank_visits
 WHERE 
@@ -110,12 +110,12 @@ FROM
 SELECT
 	DISTINCT customer_id, product_id, purchase_times
 FROM (
-		SELECT 
-			customer_id,
-			product_id,
-			count(*) OVER (PARTITION BY customer_id, product_id) as purchase_times
-		FROM 
-			customer_purchases
+	SELECT 
+		customer_id,
+		product_id,
+		count(*) OVER (PARTITION BY customer_id, product_id) as purchase_times
+	FROM 
+		customer_purchases
 ) AS x;
 
 
