@@ -93,6 +93,7 @@ WHERE
 	rank_visits.visit_number=1;
 
 /* 3. Using a COUNT() window function, include a value along with each row of the 
+
 customer_purchases table that indicates how many different times that customer has purchased that product_id. */
 
 -- Approach 1 
@@ -117,6 +118,7 @@ FROM (
 			customer_purchases
 ) AS x;
 
+
 -- String manipulations
 /* 1. Some product names in the product table have descriptions like "Jar" or "Organic". 
 These are separated from the product name with a hyphen. 
@@ -128,6 +130,7 @@ Remove any trailing or leading whitespaces. Don't just use a case statement for 
 | Habanero Peppers - Organic | Organic     |
 
 Hint: you might need to use INSTR(product_name,'-') to find the hyphens. INSTR will help split the column. */
+
 SELECT 
 	product_name,
 	CASE
@@ -155,7 +158,6 @@ FROM
 WHERE 
 	product_size REGEXP '[0-9]+' ;
 
-
 -- UNION
 /* 1. Using a UNION, write a query that displays the market dates with the highest and lowest total sales.
 
@@ -165,6 +167,7 @@ HINT: There are a possibly a few ways to do this query, but if you're struggling
 "best day" and "worst day"; 
 3) Query the second temp table twice, once for the best day, once for the worst day, 
 with a UNION binding them. */
+
 DROP TABLE IF EXISTS daily_sales;
 -- CREATE the temp daily_sales table and sort the sales in order
 -- Convert any NULL values or non-numeric values to '0' when SUM, to ensure accuracy
@@ -193,4 +196,4 @@ SELECT
 FROM 
 	daily_sales;
 	
-	
+

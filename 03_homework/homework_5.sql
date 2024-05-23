@@ -1,3 +1,4 @@
+
 -- Cross Join
 /*1. Suppose every vendor in the `vendor_inventory` table had 5 of each of their products to sell to **every** 
 customer on record. How much money would each vendor make per product? 
@@ -35,11 +36,11 @@ ON m.product_id=p.product_id
 INNER JOIN vendor as v
 ON v.vendor_id=m.vendor_id;
 
-
 -- INSERT
 /*1.  Create a new table "product_units". 
 This table will contain only products where the `product_qty_type = 'unit'`. 
 It should use all of the columns from the product table, as well as a new column for the `CURRENT_TIMESTAMP`.  
+
 Name the timestamp column `snapshot_timestamp`. */
 
 DROP TABLE IF EXISTS product_units;
