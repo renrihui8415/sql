@@ -15,7 +15,58 @@ _Hint, search type 1 vs type 2 slowly changing dimensions._
 
 Bonus: Are there privacy implications to this, why or why not?
 ```
-Your answer...
+1. Type 1 Slowly Changing Dimension (SCD)
+
+   1.1 Overwrite: this architecture simply updates (overwrites) the new address whenever there's a change in the customer's address. Only the latest address information is retained, and there is no historical tracking of changes.
+
+   1.2 Schema: the schema of the 'CUSTOMER_ADDRESS' table would typically include columns such as 
+   'customer_id', 
+   'address', 
+   'city', 
+   'state', 
+   'country', 
+   'zip_code'.
+
+   1.3 SQL statement: 
+   "UPDATE customer_address SET c1=v1, ... WHERE customer_id ='...'".
+
+2. Type 2 Slowly Changing Dimension (SCD)
+
+   2.1 Insert: this architecture simply keeps all historical changes to the customer addresses. Each time there's a change in the table, a new record is inserted into the database, preserving the history of changes over time.
+
+   2.2 Schema: the schema of the 'CUSTOMER_ADDRESS' table would typically include columns such as 
+   'customer_id', 
+   'address', 
+   'city', 
+   'state', 
+   'country', 
+   'zip_code', 
+   'address_id', (new Primary Key)
+   'status'. (additional column)
+   
+   Given that the 'customer_id' duplicates with every change in the address; a new column ('address_id') is created to serve as primary key (PK). 
+
+   When a customer's address becomes outdated, the 'status' column will receive an integer value to denote its invalidity. Subsequently, the new address will be inserted into the table as a new row with its 'status' column set to 'null', signifying its current validity. Only the most recent address entry will possess a 'null' status. It is advisable to index the 'status' column to enhance query performance. 
+   
+   The 'address_id' column is primarily generated based on a timestamp to ensure a unique identifier for each customer. In the future, as the business expands and multiple records are created simultaneously (concurrent writes), additional strings or digits may be appended to the timestamp to maintain uniqueness. Consequently, the 'address_id' column not only serves as the primary key (PK) for the table, but also precisely records the date and time when an outdated record becomes invalid. This timestamp functionality efficiently organizes and sorts all historical addresses in chronological order.
+
+   2.3 Two SQL statements: (One to insert new address information, and another to update outdated entries)
+   ' INSERT INTO customer_address (col1, col2, ...) VALUES(value1, value2, ...)'. 
+   'UPDATE customer_address SET status = 1, time_stamp=julianday('now')  WHERE customer_id='...'.
+
+   2.4 'SELECT' statement: the SQL statement for 'SELECT' will be amended to include a 'WHERE' condition: 'WHERE status is not null'. This ensures that only the latest valid information is retrieved. This optimization eliminates the need to compare timestamps to identify the most recent address, thus enhancing database performance, particularly when 'status' is indexed. 
+
+   2.5 'DELETE' statement: the integer value assigned to 'status' can accomodate various scenarios, allowing  the database to preserve data instead of deletion. Different values may signify different reasons for invalidity, aiding in data management and retrieval.
+   
+3. Privacy implication
+
+    3.1 Data Breach Risk: Storing customer addresses increases the potential impact of a data breach. If unauthorized parties gain access to the database, they could exploit this sensitive information for identity theft.
+
+    3.2 Compliance Issues: Depending on the jurisdiction and the nature of the stored data, there might be legal requirements regarding the storage and protection of customer addresses. Failure to comply with these regulations could result in sustantial fines or legal repercussion.
+
+    3.3 Customer Trust: Customers may be concerned about their privacy and the security of their personal information. If they perceive that their addresses are not being adequately protected, it could undermine their trust in the business and lead to customer dissatisfaction or even loss of business.
+
+
 ```
 
 ## Question 4
@@ -23,7 +74,21 @@ Review the AdventureWorks Schema [here](https://i.stack.imgur.com/LMu4W.gif)
 
 Highlight at least two differences between it and your ERD. Would you change anything in yours?
 ```
-Your answer...
+1. Compared to AdventureWorks schema, there are indeed a couple of differences:
+
+    1.1 Focus on Company Department Functionality and Security:
+      My ERD places emphasis on company department functionality by creating schemas according to department work scope, including areas such as financing and accounting. This approach ensures that 'the least privileges' are assigned to individuals based on their daily job responsibilities, adhering to best practices for database security and access control.
+
+    1.2 Error Log and Metadata Tables:
+      AdventureWorks schema includes tables dedicated to error logging and metadata recording, which are present in the AdventureWorks schema. These tables are essential for tracking errors, system events, and changes made to the database, enhancing data governance and troubleshooting capabilities.
+
+    1.3 Production Schema Details:
+      AdventureWorks schema includes specific tables related to production, such as work order, product price history, and product subcategory. These details provide a deeper level of specificity in modeling the production processes, which may be beneficial for those systems focusing on manufacturing industry. 
+
+2. Regarding potential changes to my ERD:
+   -- Consider adding database user management and error logging
+      Including tables dedicated to error logging and user / user group management can enhance data governance and facilitate troubleshooting. This addition would align my ERD more closely with standard database practices and improve overall system performance.
+
 ```
 
 # Criteria
