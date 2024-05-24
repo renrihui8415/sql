@@ -1,4 +1,3 @@
-
 -- Cross Join
 /*1. Suppose every vendor in the `vendor_inventory` table had 5 of each of their products to sell to **every** 
 customer on record. How much money would each vendor make per product? 
@@ -16,19 +15,19 @@ SELECT
 	original_price* 5 * customer_number as earning_per_product
 FROM (
 
-	SELECT DISTINCT
-		vendor_id,
-		product_id,
-		original_price,
-		c.customer_number
-	FROM
-		vendor_inventory as vi
-	CROSS JOIN (
-		SELECT 
-			count(DISTINCT (customer_id)) AS customer_number
-		FROM
-			customer 
-	)as c 
+				SELECT DISTINCT
+					vendor_id,
+					product_id,
+					original_price,
+					c.customer_number
+				FROM
+					vendor_inventory as vi
+				CROSS JOIN (
+					SELECT 
+						count(DISTINCT (customer_id)) AS customer_number
+					FROM
+						customer 
+				)as c 
 				
 ) as m
 INNER JOIN product as p
@@ -36,11 +35,11 @@ ON m.product_id=p.product_id
 INNER JOIN vendor as v
 ON v.vendor_id=m.vendor_id;
 
+
 -- INSERT
 /*1.  Create a new table "product_units". 
 This table will contain only products where the `product_qty_type = 'unit'`. 
 It should use all of the columns from the product table, as well as a new column for the `CURRENT_TIMESTAMP`.  
-
 Name the timestamp column `snapshot_timestamp`. */
 
 DROP TABLE IF EXISTS product_units;
@@ -54,6 +53,10 @@ FROM
 WHERE
 	product_qty_type='unit';
 	
+-- add Primary Key to a table is not directly supported in SQLite;
+-- we can firstly create the table listing the columns and its datatypes and add PK at the same time
+-- and insert the data later
+	
 -- SELECT * from product_units ORDER BY product_id;
 
 
@@ -63,9 +66,9 @@ This can be any product you desire (e.g. add another record for Apple Pie). */
 INSERT INTO product_units (product_id, product_name,product_size,product_category_id, product_qty_type, snapshot_timestamp)
 VALUES(
 	(SELECT max(product_id) +1 FROM product_units),  -- take ''max(product_id) +1'' to be the product_id for the new entry
-	'DSI Data Pie',
+	'Cherry Pie',
 	'large',
-	(SELECT product_category_id FROM product_category WHERE lower(product_category_name) LIKE '%food%' LIMIT 1), -- get the 'food' category_id for the new entry: 'DSI Data Pie'
+	(SELECT product_category_id FROM product_units WHERE product_name='Cherry Pie' LIMIT 1), -- get the cherry pie's category_id for the new entry: 'Cherry Pie'
 	'unit',
 	CURRENT_TIMESTAMP
 );
@@ -79,7 +82,8 @@ HINT: If you don't specify a WHERE clause, you are going to have a bad time.*/
 
 DELETE FROM product_units
 WHERE
-	product_name='DSI Data Pie';
+	product_name='Cherry Pie' 
+	and snapshot_timestamp= (SELECT min(snapshot_timestamp) FROM product_units WHERE product_name="Cherry Pie")
 	
 -- SELECT * from product_units ORDER BY product_id;
 
@@ -117,20 +121,20 @@ SET current_quantity = (
 
     SELECT lq.quantity
     FROM (
-		SELECT 
-			product_id,
-			quantity 
-		FROM
-			vendor_inventory AS vi_1
-		WHERE 
-			market_date = (
 				SELECT 
-					MAX(market_date) 
-				FROM 
-					vendor_inventory AS vi_2
+					product_id,
+					quantity 
+				FROM
+					vendor_inventory AS vi_1
 				WHERE 
-					vi_1.product_id = vi_2.product_id
-			) 
+					market_date = (
+						SELECT 
+							MAX(market_date) 
+						FROM 
+							vendor_inventory AS vi_2
+						WHERE 
+							vi_1.product_id = vi_2.product_id
+					) 
 
 )AS lq
 WHERE pu.product_id = lq.product_id
@@ -153,12 +157,12 @@ ADD current_quantity INT;
 
 UPDATE product_units as pu
 SET current_quantity = coalesce(
-				(SELECT vi.quantity
-				FROM vendor_inventory as vi
-				WHERE vi.product_id=pu.product_id
-				ORDER BY vi.market_date DESC
-				LIMIT 1),
-				0)
+														(SELECT vi.quantity
+														FROM vendor_inventory as vi
+														WHERE vi.product_id=pu.product_id
+														ORDER BY vi.market_date DESC
+														LIMIT 1),
+														0)
 -- WHERE product_id IN (SELECT product_id from vendor_inventory);		
 -- Either a) use COALESCE to replace null with '0' as the above QUERY; 
 -- or, b) use WHERE condition to only update rows in the 'product_units' table 
